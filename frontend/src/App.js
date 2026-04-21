@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import PotholeMap from './PotholeMap'; // Our map from the previous step!
 import './App.css';
 import AdminDashboard from './AdminDashboard';
+import LiveCamera from './LiveCamera';
 
 function App() {
   const [image, setImage] = useState(null);
@@ -14,6 +15,8 @@ function App() {
   const [location, setLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState('');
   const [view, setView] = useState('user'); // Can be 'user' or 'admin'
+  const [email, setEmail] = useState('');
+  const [inputMode, setInputMode] = useState('upload'); // 'upload' or 'live'
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -56,6 +59,10 @@ function App() {
     if (location) {
       formData.append('latitude', location.lat);
       formData.append('longitude', location.lng);
+    }
+    
+    if (email) {
+      formData.append('email', email); // 🆕 NEW: Send email to backend
     }
 
     try {
@@ -101,11 +108,46 @@ function App() {
           <AdminDashboard />
         ) : (
           <>
+          {/* 🆕 NEW: Input Mode Tabs */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+              <button 
+                onClick={() => setInputMode('upload')}
+                style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: inputMode === 'upload' ? '#FFD700' : '#333', color: inputMode === 'upload' ? '#000' : '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}
+              >
+                📤 Upload Image
+              </button>
+              <button 
+                onClick={() => setInputMode('live')}
+                style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: inputMode === 'live' ? '#FFD700' : '#333', color: inputMode === 'live' ? '#000' : '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}
+              >
+                📷 Live Scanner
+              </button>
+            </div>
+
+            {/* Conditionally Render the chosen mode */}
+            {inputMode === 'live' ? (
+              <LiveCamera />
+            ) : (
+              <div className="upload-section">
+                 {/* ... all your existing upload section code ... */}
+              </div>
+            )}
             {/* ... Paste your existing Upload Section, Results Section, and Map Section here ... */}
             <div className="upload-section">
               <h2>Report a Pothole</h2>
               <input type="file" accept="image/*" onChange={handleImageChange} className="file-input" />
-              
+              {/* 🆕 NEW: Email Input for Notifications */}
+          <div style={{ margin: '15px 0', textAlign: 'left', width: '100%', maxWidth: '300px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', color: '#aaaaaa' }}>Notify me when fixed (optional):</label>
+            <input 
+              type="email" 
+              placeholder="Enter your email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #555', backgroundColor: '#333', color: '#fff' }}
+            />
+          </div>
+
               <div style={{ margin: '15px 0' }}>
                 <button onClick={getLocation} style={{ padding: '8px 16px', cursor: 'pointer', borderRadius: '4px' }}>
                   📍 Get My Location

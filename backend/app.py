@@ -103,6 +103,7 @@ def detect_pothole():
         # 🆕 NEW: Get latitude and longitude from the request if they exist
         lat = request.form.get('latitude')
         lng = request.form.get('longitude')
+        email = request.form.get('email') # 🆕 NEW: Capture user's email
 
         # 🆕 NEW: Save this report to MongoDB, now including the real GPS data!
         report_data = {
@@ -113,7 +114,8 @@ def detect_pothole():
             'reported_at': datetime.datetime.utcnow(),
             # Convert to float for mapping math, or save as None if user denied location
             'latitude': float(lng) if lng else None, 
-            'longitude': float(lat) if lat else None 
+            'longitude': float(lat) if lat else None,
+            'email': email # 🆕 NEW: Save email to database
         }
         print(float(lat))
         print(float(lng))
@@ -142,6 +144,30 @@ def get_reports():
     return jsonify(reports), 200
 
 # 🆕 NEW: Update report status (Admin feature)
+# @app.route('/api/reports/<report_id>/status', methods=['PUT'])
+# def update_status(report_id):
+#     data = request.json
+#     new_status = data.get('status')
+    
+#     if not new_status:
+#         return jsonify({'error': 'No status provided'}), 400
+        
+#     try:
+#         # Find the report by its MongoDB ID and update its status
+#         result = reports_collection.update_one(
+#             {'_id': ObjectId(report_id)},
+#             {'$set': {'status': new_status}}
+#         )
+        
+#         if result.modified_count == 1:
+#             return jsonify({'message': 'Status updated successfully!'}), 200
+#         else:
+#             return jsonify({'message': 'Status was already set to this value.'}), 200
+            
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+    
+# 🆕 NEW: Updated report status route with simulated notifications
 @app.route('/api/reports/<report_id>/status', methods=['PUT'])
 def update_status(report_id):
     data = request.json
@@ -151,13 +177,23 @@ def update_status(report_id):
         return jsonify({'error': 'No status provided'}), 400
         
     try:
-        # Find the report by its MongoDB ID and update its status
+        # First, fetch the report so we know who to notify
+        report = reports_collection.find_one({'_id': ObjectId(report_id)})
+        
         result = reports_collection.update_one(
             {'_id': ObjectId(report_id)},
             {'$set': {'status': new_status}}
         )
         
         if result.modified_count == 1:
+            # 🔔 NOTIFICATION LOGIC: If fixed and we have an email, "send" an alert!
+            if new_status == 'Fixed' and report and report.get('email'):
+                print("\n" + "="*50)
+                print(f"📧 EMAIL DISPATCHED TO: {report['email']}")
+                print(f"Subject: 🚧 Great News! Pothole Fixed!")
+                print(f"Body: The pothole you reported at {report.get('latitude', 'your location')} has been officially repaired by the authorities. Thank you for making our roads safer!")
+                print("="*50 + "\n")
+
             return jsonify({'message': 'Status updated successfully!'}), 200
         else:
             return jsonify({'message': 'Status was already set to this value.'}), 200
