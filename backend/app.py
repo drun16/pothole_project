@@ -105,6 +105,11 @@ def detect_pothole():
         lng = request.form.get('longitude')
         email = request.form.get('email') # 🆕 NEW: Capture user's email
 
+        # 2. Safely convert them to floats ONLY if they exist and are valid strings
+        # (Sometimes React sends the word "undefined", we need to ignore that too)
+        safe_lat = float(lat) if lat and lat != 'undefined' else None
+        safe_lng = float(lng) if lng and lng != 'undefined' else None
+
         # 🆕 NEW: Save this report to MongoDB, now including the real GPS data!
         report_data = {
             'image_filename': filename,
@@ -113,8 +118,8 @@ def detect_pothole():
             'status': 'Pending',
             'reported_at': datetime.datetime.utcnow(),
             # Convert to float for mapping math, or save as None if user denied location
-            'latitude': float(lng) if lng else None, 
-            'longitude': float(lat) if lat else None,
+            'latitude': safe_lng, 
+            'longitude': safe_lat,
             'email': email # 🆕 NEW: Save email to database
         }
         print(float(lat))
