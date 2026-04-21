@@ -1,0 +1,34 @@
+# ---- Python / Backend ----
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+
+# Environment files
+.env
+*.env
+
+# Uploads / media
+backend/uploads/
+
+# ---- Node / Frontend ----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+# frontend/build/
+# frontend/.cache/
+
+# ---- General ----
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# VS Code
+.vscode/
