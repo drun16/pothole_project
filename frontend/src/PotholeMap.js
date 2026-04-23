@@ -42,7 +42,7 @@ function ChangeMapView({ center, zoom }) {
   return null;
 }
 
-const PotholeMap = ({ userLocation }) => {
+const PotholeMap = ({ userLocation, refreshTrigger }) => {
   const [reports, setReports] = useState([]);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ const PotholeMap = ({ userLocation }) => {
       }
     };
     fetchReports();
-  }, []);
+  }, [refreshTrigger]); // 👈 🆕 NEW: Now it fetches again whenever this number changes!
 
   const mapCenter = userLocation 
     ? [userLocation.lat, userLocation.lng] 

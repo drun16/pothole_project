@@ -17,6 +17,7 @@ function App() {
   const [view, setView] = useState('user'); // Can be 'user' or 'admin'
   const [email, setEmail] = useState('');
   const [inputMode, setInputMode] = useState('upload'); // 'upload' or 'live'
+  const [mapRefreshKey, setMapRefreshKey] = useState(0);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -126,7 +127,9 @@ function App() {
 
             {/* Conditionally Render the chosen mode */}
             {inputMode === 'live' ? (
-              <LiveCamera />
+              /* 🆕 NEW: Pass the refresh function to the camera */
+              <LiveCamera onPotholeLogged={() => setMapRefreshKey(prev => prev + 1)} />
+              
             ) : (
               <div className="upload-section">
                  {/* ... all your existing upload section code ... */}
@@ -188,7 +191,8 @@ function App() {
 
             <div className="map-section" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
               <h2 style={{ color: '#FFD700', marginTop: '40px' }}>Live Pothole Map</h2>
-              <PotholeMap userLocation={location} />
+              { /* 🆕 NEW: Give the map the refresh trigger */ }
+              <PotholeMap userLocation={location} refreshTrigger={mapRefreshKey} />
             </div>
           </>
         )}

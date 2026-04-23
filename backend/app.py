@@ -40,7 +40,9 @@ def detect_pothole():
         file.save(filepath)
 
         # ... (previous file saving code stays the same) ...
-        
+        # 🆕 NEW: Determine if this is a manual upload or a live video feed
+        source = request.form.get('source', 'upload')
+
         results = model(filepath)
         detections = []
         
@@ -100,6 +102,7 @@ def detect_pothole():
         # }
         # ... (previous code above stays the same) ...
 
+        
         # 🆕 NEW: Get latitude and longitude from the request if they exist
         lat = request.form.get('latitude')
         lng = request.form.get('longitude')
@@ -110,32 +113,46 @@ def detect_pothole():
         safe_lat = float(lat) if lat and lat != 'undefined' else None
         safe_lng = float(lng) if lng and lng != 'undefined' else None
 
+        # 🆕 NEW: Smart Database Saving Logic!
+        # Always save manual uploads. But for LIVE camera, ONLY save if a pothole is found!
+        if source == 'upload' or (source == 'live' and len(detections) > 0):
         # 🆕 NEW: Save this report to MongoDB, now including the real GPS data!
-        report_data = {
-            'image_filename': filename,
-            'pothole_count': len(detections),
-            'detections': detections,
-            'status': 'Pending',
-            'reported_at': datetime.datetime.utcnow(),
-            # Convert to float for mapping math, or save as None if user denied location
-            'latitude': safe_lng, 
-            'longitude': safe_lat,
-            'email': email # 🆕 NEW: Save email to database
-        }
-        print(float(lat))
-        print(float(lng))
-        inserted_report = reports_collection.insert_one(report_data)
-
+            report_data = {
+                'image_filename': filename,
+                'pothole_count': len(detections),
+                'detections': detections,
+                'status': 'Pending',
+                'reported_at': datetime.datetime.utcnow(),
+                # Convert to float for mapping math, or save as None if user denied location
+                'latitude': safe_lng, 
+                'longitude': safe_lat,
+                'email': email # 🆕 NEW: Save email to database
+            }
+            print(float(lat))
+            print(float(lng))
+            inserted_report = reports_collection.insert_one(report_data)
+            db_saved = True
+        else:
+            # If it's a live frame with no potholes, we delete the temporary image to save space!
+            os.remove(filepath)
+            db_saved = False
         # ... (return statement stays the same) ...
         # # Insert into database and get the generated ID
         # inserted_report = reports_collection.insert_one(report_data)
 
         return jsonify({
-            'message': 'Detection complete and saved to database!',
-            'report_id': str(inserted_report.inserted_id),
+            'message': 'Detection complete',
+            'saved_to_db': db_saved, # Let the frontend know if we saved it
             'pothole_count': len(detections),
             'detections': detections
         }), 200
+
+        # return jsonify({
+        #     'message': 'Detection complete and saved to database!',
+        #     'report_id': str(inserted_report.inserted_id),
+        #     'pothole_count': len(detections),
+        #     'detections': detections
+        # }), 200
 
 # 🆕 NEW: An API endpoint to fetch all reports for the Admin Map/Dashboard
 @app.route('/api/reports', methods=['GET'])
