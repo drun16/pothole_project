@@ -108,3 +108,140 @@ body {
   font-weight: bold;
   font-size: 1.2rem;
 }
+
+/* 🆕 NEW: Startup UI Styles */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1a1a1a;
+  padding: 15px 30px;
+  border-bottom: 2px solid #333;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.nav-brand h1 {
+  color: #FFD700;
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.nav-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-badge {
+  background-color: #333;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: 1px solid #555;
+}
+
+.stat-badge span {
+  font-size: 1.1rem;
+  margin-left: 8px;
+}
+
+.stat-badge.fixed span { color: #4CAF50; }
+.stat-badge.pending span { color: #ff4d4d; }
+.stat-badge.total span { color: #FFD700; }
+
+.hero-section {
+  text-align: center;
+  padding: 60px 20px 40px;
+}
+
+.hero-section h2 {
+  font-size: 3.5rem;
+  margin: 0 0 15px 0;
+  color: #ffffff;
+}
+
+.hero-section h2 span {
+  color: #FFD700;
+}
+
+.hero-section p {
+  font-size: 1.2rem;
+  color: #aaaaaa;
+  max-width: 600px;
+  margin: 0 auto 50px auto;
+}
+
+.circle-nav-grid {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.circle-btn-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.circle-btn-wrapper:hover {
+  transform: translateY(-10px);
+}
+
+.circle-btn {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background-color: #1e1e1e;
+  border: 3px solid #FFD700;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3.5rem;
+  box-shadow: 0 8px 16px rgba(255, 215, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.circle-btn-wrapper:hover .circle-btn {
+  background-color: #FFD700;
+  box-shadow: 0 12px 24px rgba(255, 215, 0, 0.4);
+}
+
+.circle-btn-wrapper:hover .circle-icon {
+  filter: invert(1); /* Makes the emoji/icon dark on hover */
+}
+
+.circle-label {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.page-container {
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
