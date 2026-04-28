@@ -89,7 +89,27 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', marginTop: '20px' }}>
+      {/* Analytics Cards */}
+      {/* 🆕 NEW: Added flexWrap: 'wrap' to the container so cards stack on mobile */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', marginTop: '20px', flexWrap: 'wrap' }}>
+        
+        {/* 🆕 NEW: Changed flex: 1 to flex: '1 1 200px' so they know when to wrap */}
+        <div style={{ flex: '1 1 200px', backgroundColor: '#1e1e1e', padding: '20px', borderRadius: '8px', textAlign: 'center', border: '1px solid #333' }}>
+          <h3>Total Reports</h3>
+          <p style={{ fontSize: '2rem', color: '#FFD700', margin: 0 }}>{totalReports}</p>
+        </div>
+        
+        <div style={{ flex: '1 1 200px', backgroundColor: '#1e1e1e', padding: '20px', borderRadius: '8px', textAlign: 'center', border: '1px solid #333' }}>
+          <h3>Pending Action</h3>
+          <p style={{ fontSize: '2rem', color: '#ff4d4d', margin: 0 }}>{pendingReports}</p>
+        </div>
+        
+        <div style={{ flex: '1 1 200px', backgroundColor: '#1e1e1e', padding: '20px', borderRadius: '8px', textAlign: 'center', border: '1px solid #333' }}>
+          <h3>Potholes Fixed</h3>
+          <p style={{ fontSize: '2rem', color: '#4CAF50', margin: 0 }}>{fixedReports}</p>
+        </div>
+      </div>
+      {/* <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', marginTop: '20px' }}>
         <div style={{ flex: 1, backgroundColor: '#1e1e1e', padding: '20px', borderRadius: '8px', textAlign: 'center', border: '1px solid #333' }}>
           <h3>Total Reports</h3>
           <p style={{ fontSize: '2rem', color: '#FFD700', margin: 0 }}>{totalReports}</p>
@@ -102,7 +122,7 @@ const AdminDashboard = () => {
           <h3>Potholes Fixed</h3>
           <p style={{ fontSize: '2rem', color: '#4CAF50', margin: 0 }}>{fixedReports}</p>
         </div>
-      </div>
+      </div> */}
 
       <div style={{ overflowX: 'auto', backgroundColor: '#1e1e1e', borderRadius: '8px', padding: '20px', border: '1px solid #333' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>

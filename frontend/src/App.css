@@ -245,3 +245,86 @@ body {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* 📱 Mobile Responsiveness */
+@media (max-width: 768px) {
+  /* Navbar adjustments */
+  .navbar {
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px 10px;
+    text-align: center;
+  }
+
+  .nav-stats {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .stat-badge {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .stat-badge span {
+    font-size: 1rem;
+  }
+
+  /* Hero section adjustments */
+  .hero-section {
+    padding: 30px 10px 20px;
+  }
+
+  .hero-section h2 {
+    font-size: 2.2rem;
+  }
+
+  .hero-section p {
+    font-size: 1rem;
+    margin-bottom: 30px;
+  }
+
+  /* Circular Buttons adjustments */
+  .circle-nav-grid {
+    gap: 20px;
+  }
+
+  .circle-btn {
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+    border-width: 2px;
+  }
+
+  .circle-label {
+    font-size: 1rem;
+  }
+
+  /* Upload & Map container adjustments */
+  .upload-section, .results-section {
+    padding: 20px 15px;
+    width: 90%;
+  }
+
+  .page-container {
+    padding: 20px 10px;
+  }
+
+  .map-container {
+    height: 400px !important; /* Slightly shorter map for mobile */
+  }
+}
+
+/* Extra small devices (narrow phones) */
+@media (max-width: 480px) {
+  .circle-nav-grid {
+    gap: 15px;
+  }
+  
+  .circle-btn {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+}
