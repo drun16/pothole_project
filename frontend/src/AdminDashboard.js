@@ -9,7 +9,8 @@ const AdminDashboard = () => {
 
   const fetchReports = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/reports');
+      const response = await fetch('https://f62kjbdd-5000.inc1.devtunnels.ms/api/reports');
+      // const response = await fetch('http://127.0.0.1:5000/api/reports');
       const data = await response.json();
       setReports(data);
     } catch (error) {
@@ -23,7 +24,8 @@ const AdminDashboard = () => {
 
   const handleStatusChange = async (reportId, newStatus) => {
     try {
-      await fetch(`http://127.0.0.1:5000/api/reports/${reportId}/status`, {
+      await fetch(`https://f62kjbdd-5000.inc1.devtunnels.ms/api/reports/${reportId}/status`, {
+      // await fetch(`http://127.0.0.1:5000/api/reports/${reportId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -45,12 +47,14 @@ const AdminDashboard = () => {
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22);
 
     // Prepare the table data
-    const tableColumn = ["Date", "Potholes Found", "Coordinates", "Status"];
+    const tableColumn = ["Date", "Time", "Potholes Found", "Coordinates", "Status"];
     const tableRows = [];
 
     reports.forEach(report => {
       const reportData = [
         new Date(report.reported_at).toLocaleDateString(),
+        // 🆕 NEW: Format the time nicely for the PDF
+        new Date(report.reported_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         report.pothole_count,
         report.latitude ? `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}` : 'Unknown',
         report.status
@@ -128,7 +132,10 @@ const AdminDashboard = () => {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #444', color: '#aaaaaa' }}>
+              {/* 🆕 NEW: Image and Time Table Headers */}
+              <th style={{ padding: '12px' }}>Image</th>
               <th style={{ padding: '12px' }}>Date</th>
+              <th style={{ padding: '12px' }}>Time</th>
               <th style={{ padding: '12px' }}>Potholes</th>
               <th style={{ padding: '12px' }}>Location (Lat, Lng)</th>
               <th style={{ padding: '12px' }}>Status</th>
@@ -138,7 +145,28 @@ const AdminDashboard = () => {
           <tbody>
             {reports.map((report) => (
               <tr key={report._id} style={{ borderBottom: '1px solid #333' }}>
+
+                {/* 🆕 NEW: Render the Image Thumbnail */}
+                <td style={{ padding: '12px' }}>
+                  {report.image_filename ? (
+                    <img 
+                      src={`https://f62kjbdd-5000.inc1.devtunnels.ms/uploads/${report.image_filename}`} 
+                      // src={`http://127.0.0.1:5000/uploads/${report.image_filename}`}
+                      alt="Pothole" 
+                      style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #555' }}
+                    />
+                  ) : (
+                    <span style={{ color: '#555', fontSize: '0.8rem' }}>No Image</span>
+                  )}
+                </td>
+
                 <td style={{ padding: '12px' }}>{new Date(report.reported_at).toLocaleDateString()}</td>
+
+                {/* 🆕 NEW: Render the exact Time */}
+                <td style={{ padding: '12px', color: '#dddddd' }}>
+                  {new Date(report.reported_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </td>
+                
                 <td style={{ padding: '12px' }}>{report.pothole_count}</td>
                 <td style={{ padding: '12px', fontSize: '0.9rem' }}>
                   {report.latitude ? `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}` : 'Unknown'}

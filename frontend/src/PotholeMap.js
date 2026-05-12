@@ -64,7 +64,8 @@ const PotholeMap = ({ userLocation, refreshTrigger }) => {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/reports');
+        const response = await fetch('https://f62kjbdd-5000.inc1.devtunnels.ms/api/reports');
+        // const response = await fetch('http://127.0.0.1:5000/api/reports');
         const data = await response.json();
         setReports(data);
       } catch (error) {

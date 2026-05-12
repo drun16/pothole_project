@@ -25,7 +25,8 @@ function App() {
   // Fetch Global Stats
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/reports');
+      const response = await fetch('https://f62kjbdd-5000.inc1.devtunnels.ms/api/reports');
+      // const response = await fetch('http://127.0.0.1:5000/api/reports');
       const data = await response.json();
       setGlobalStats({
         total: data.length,
@@ -79,7 +80,8 @@ function App() {
     if (email) formData.append('email', email);
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/detect', {
+      const response = await fetch('https://f62kjbdd-5000.inc1.devtunnels.ms/api/detect', {
+      // const response = await fetch('http://127.0.0.1:5000/api/detect', {
         method: 'POST',
         body: formData,
       });
@@ -120,6 +122,7 @@ function App() {
             <h2>Making Roads <span>Safer</span> with AI</h2>
             <p>Our smart platform detects, maps, and reports road hazards in real-time. Choose a module below to get started.</p>
             
+
             <div className="circle-nav-grid">
               <div className="circle-btn-wrapper" onClick={() => setCurrentPage('upload')}>
                 <div className="circle-btn"><span className="circle-icon">📤</span></div>
@@ -138,6 +141,30 @@ function App() {
                 <span className="circle-label">Authority Portal</span>
               </div>
             </div>
+            <div>
+              <p>
+
+              </p>
+            </div>
+            {/* --------------------------------------------------- */}
+            {/* NEW VIDEO SECTION */}
+            {/* --------------------------------------------------- */}
+            <div className="hero-video-container">
+              {/* autoPlay, loop, muted, and playsInline ensure it plays automatically on both desktop and mobile without user interaction */}
+              <video 
+                className="promo-video" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                controls // Adds play/pause buttons in case they want to watch it properly
+              >
+                {/* Points to the public/videos folder we created */}
+                <source src="/Detect-ALERT-Drivesafe.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            {/* --------------------------------------------------- */}
           </div>
         )}
 
@@ -154,10 +181,10 @@ function App() {
                 <p style={{ color: '#FFD700', margin: '10px 0' }}>{locationStatus}</p>
               </div>
 
-              <div style={{ margin: '15px 0', textAlign: 'left', width: '100%', maxWidth: '300px' }}>
+              {/* <div style={{ margin: '15px 0', textAlign: 'left', width: '100%', maxWidth: '300px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', color: '#aaaaaa' }}>Notify me when fixed:</label>
                 <input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #555', backgroundColor: '#333', color: '#fff' }} />
-              </div>
+              </div> */}
 
               {preview && <div className="image-preview"><img src={preview} alt="Road preview" /></div>}
 

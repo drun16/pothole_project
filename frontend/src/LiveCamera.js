@@ -40,7 +40,10 @@ const LiveCamera = ({ onPotholeLogged }) => {
     const res = await fetch(imageSrc);
     const blob = await res.blob();
     const formData = new FormData();
-    formData.append('file', blob, 'webcam_frame.jpg');
+    // 🆕 NEW: Add a millisecond timestamp to the file name so it is mathematically impossible to duplicate
+    const uniqueFilename = `live_pothole_${Date.now()}.jpg`;
+    formData.append('file', blob, uniqueFilename);
+    // formData.append('file', blob, 'webcam_frame.jpg');
     
     // 🆕 NEW: Tell the backend this is a live feed, and attach the moving coordinates!
     formData.append('source', 'live');
@@ -50,7 +53,8 @@ const LiveCamera = ({ onPotholeLogged }) => {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/detect', {
+      const response = await fetch('https://f62kjbdd-5000.inc1.devtunnels.ms/api/detect', {
+      // const response = await fetch('http://127.0.0.1:5000/api/detect', {
         method: 'POST',
         body: formData,
       });

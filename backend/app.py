@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory # 🆕 NEW: Added send_from_directory
 from flask_cors import CORS
 from ultralytics import YOLO
 import os
@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from pymongo import MongoClient # 🆕 NEW: Import MongoDB client
 import datetime                 # 🆕 NEW: To timestamp our reports
 from bson.objectid import ObjectId
+import uuid  # 🆕 NEW: Import the unique ID generator
 
 app = Flask(__name__)
 CORS(app) 
@@ -35,8 +36,22 @@ def detect_pothole():
         return jsonify({'error': 'No file selected'}), 400
 
     if file:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        # filename = secure_filename(file.filename)
+        # filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        # file.save(filepath)
+        # 🆕 NEW: Generate a completely unique filename for every single upload!
+        original_filename = secure_filename(file.filename)
+        
+        # Grab the file extension (e.g., .jpg, .png)
+        file_ext = os.path.splitext(original_filename)[1]
+        if not file_ext:
+            file_ext = '.jpg' # Default to jpg for webcam frames
+            
+        # Create a unique name like: 8f7d9a...b4.jpg
+        unique_filename = f"{uuid.uuid4().hex}{file_ext}"
+        
+        # Save it with the new unique name
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(filepath)
 
         # ... (previous file saving code stays the same) ...
@@ -118,7 +133,7 @@ def detect_pothole():
         if source == 'upload' or (source == 'live' and len(detections) > 0):
         # 🆕 NEW: Save this report to MongoDB, now including the real GPS data!
             report_data = {
-                'image_filename': filename,
+                'image_filename': original_filename,
                 'pothole_count': len(detections),
                 'detections': detections,
                 'status': 'Pending',
@@ -223,5 +238,11 @@ def update_status(report_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# 🆕 NEW: Route to securely serve the saved images to the React frontend
+@app.route('/uploads/<filename>')
+def serve_image(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0",debug=True, port=5000)
+    CORS(app)
