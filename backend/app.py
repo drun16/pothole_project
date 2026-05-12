@@ -233,13 +233,41 @@ def detect_pothole():
 # 🆕 NEW: An API endpoint to fetch all reports for the Admin Map/Dashboard
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
-    reports = []
-    # Fetch all reports, sort by newest first
-    for report in reports_collection.find().sort('reported_at', -1):
-        report['_id'] = str(report['_id']) # Convert ObjectId to string for JSON
-        reports.append(report)
-    
-    return jsonify(reports), 200
+    try:
+        # 1. Get the requested page number from the URL (default to page 1)
+        # Example URL: /api/reports?page=2&limit=10
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 10))
+        
+        # 2. Calculate how many documents to skip
+        # If we are on page 1, skip 0. If on page 2, skip 10.
+        skip = (page - 1) * limit
+
+        # 3. Count the total number of reports in the database
+        total_reports = reports_collection.count_documents({})
+        
+        # 4. Calculate total pages needed (ceiling division logic)
+        total_pages = (total_reports + limit - 1) // limit
+
+        reports = []
+        # 5. Query MongoDB: Sort by newest, skip the old ones, limit to 10
+        cursor = reports_collection.find().sort('reported_at', -1).skip(skip).limit(limit)
+        # Fetch all reports, sort by newest first
+        for report in cursor:
+            report['_id'] = str(report['_id']) # Convert ObjectId to string for JSON
+            reports.append(report)
+        
+        return jsonify({
+                'reports': reports,
+                'metadata': {
+                    'current_page': page,
+                    'total_pages': total_pages,
+                    'total_reports': total_reports,
+                    'limit': limit
+                }
+            }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # 🆕 NEW: Update report status (Admin feature)
 # @app.route('/api/reports/<report_id>/status', methods=['PUT'])

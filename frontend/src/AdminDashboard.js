@@ -5,22 +5,30 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable'; // 🆕 NEW: Import autoTable as a specific function
 
 const AdminDashboard = ({ token }) => {
+  
   const [reports, setReports] = useState([]);
+  const [metadata, setMetadata] = useState({ current_page: 1, total_pages: 1, total_reports: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const fetchReports = async () => {
+  // 🆕 NEW: The fetch URL now includes the ?page= parameter
+  const fetchReports = async (pageToFetch = 1) => {
     try {
-      const response = await fetch('https://f62kjbdd-5000.inc1.devtunnels.ms/api/reports');
-      // const response = await fetch('http://127.0.0.1:5000/api/reports');
+      const response = await fetch(`https://f62kjbdd-5000.inc1.devtunnels.ms/api/reports?page=${pageToFetch}&limit=10`);
+      // const response = await fetch(`http://127.0.0.1:5000/api/reports?page=${pageToFetch}&limit=10`); // Use your DevTunnel URL if on mobile
       const data = await response.json();
-      setReports(data);
+      // Update our states with the new chunk of data
+      if (response.ok) {
+        setReports(data.reports);
+        setMetadata(data.metadata);
+      }
     } catch (error) {
       console.error("Error fetching reports:", error);
     }
   };
 
   useEffect(() => {
-    fetchReports();
-  }, []);
+    fetchReports(currentPage);
+  }, [currentPage]);
 
   const handleStatusChange = async (reportId, newStatus) => {
     try {
@@ -32,7 +40,7 @@ const AdminDashboard = ({ token }) => {
          },
         body: JSON.stringify({ status: newStatus }),
       });
-      fetchReports();
+      fetchReports(currentPage);
     } catch (error) {
       console.error("Error updating status:", error);
     }
@@ -191,6 +199,30 @@ const AdminDashboard = ({ token }) => {
             ))}
           </tbody>
         </table>
+
+        {/* 🆕 NEW: Pagination Navigation Controls */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #444' }}>
+          <button 
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            style={{ padding: '8px 16px', backgroundColor: currentPage === 1 ? '#333' : '#FFD700', color: currentPage === 1 ? '#888' : '#121212', border: 'none', borderRadius: '4px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+          >
+            ← Previous
+          </button>
+          
+          <span style={{ color: '#aaaaaa' }}>
+            Page <strong style={{ color: '#FFD700' }}>{metadata.current_page}</strong> of {metadata.total_pages}
+          </span>
+          
+          <button 
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, metadata.total_pages))}
+            disabled={currentPage === metadata.total_pages || metadata.total_pages === 0}
+            style={{ padding: '8px 16px', backgroundColor: currentPage === metadata.total_pages || metadata.total_pages === 0 ? '#333' : '#FFD700', color: currentPage === metadata.total_pages || metadata.total_pages === 0 ? '#888' : '#121212', border: 'none', borderRadius: '4px', cursor: currentPage === metadata.total_pages || metadata.total_pages === 0 ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+          >
+            Next →
+          </button>
+        </div>
+
       </div>
     </div>
   );
