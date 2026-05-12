@@ -85,9 +85,13 @@ const AdminDashboard = ({ token }) => {
     doc.save("Pothole_Report.pdf");
   };
 
-  const totalReports = reports.length;
-  const pendingReports = reports.filter(r => r.status === 'Pending').length;
-  const fixedReports = reports.filter(r => r.status === 'Fixed').length;
+  // const totalReports = reports.length;
+  // const pendingReports = reports.filter(r => r.status === 'Pending').length;
+  // const fixedReports = reports.filter(r => r.status === 'Fixed').length;
+
+  const totalReports = metadata.total_reports || 0;
+  const pendingReports = metadata.total_pending || 0;
+  const fixedReports = metadata.total_fixed || 0;
 
   return (
     <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', color: '#fff' }}>

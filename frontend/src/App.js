@@ -28,14 +28,18 @@ function App() {
   // Fetch Global Stats
   const fetchStats = async () => {
     try {
-      const response = await fetch('https://f62kjbdd-5000.inc1.devtunnels.ms/api/reports');
-      // const response = await fetch('http://127.0.0.1:5000/api/reports');
+      const response = await fetch('https://f62kjbdd-5000.inc1.devtunnels.ms/api/reports?page=1&limit=1');
+      // const response = await fetch('http://127.0.0.1:5000/api/reports?page=1&limit=1');
       const data = await response.json();
-      setGlobalStats({
-        total: data.length,
-        pending: data.filter(r => r.status === 'Pending').length,
-        fixed: data.filter(r => r.status === 'Fixed').length
-      });
+
+      if (response.ok) {
+        setGlobalStats({
+          total: data.metadata.total_reports,
+          pending: data.metadata.total_pending,
+          fixed: data.metadata.total_fixed
+        });
+      }
+
     } catch (error) {
       console.error("Error fetching global stats:", error);
     }

@@ -245,6 +245,10 @@ def get_reports():
 
         # 3. Count the total number of reports in the database
         total_reports = reports_collection.count_documents({})
+
+        # 🆕 NEW: Calculate global totals directly from the database
+        total_pending = reports_collection.count_documents({'status': 'Pending'})
+        total_fixed = reports_collection.count_documents({'status': 'Fixed'})
         
         # 4. Calculate total pages needed (ceiling division logic)
         total_pages = (total_reports + limit - 1) // limit
@@ -263,6 +267,8 @@ def get_reports():
                     'current_page': page,
                     'total_pages': total_pages,
                     'total_reports': total_reports,
+                    'total_pending': total_pending, #  Added to metadata
+                    'total_fixed': total_fixed,     #  Added to metadata
                     'limit': limit
                 }
             }), 200
