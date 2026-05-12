@@ -7,6 +7,10 @@ from pymongo import MongoClient # 🆕 NEW: Import MongoDB client
 import datetime                 # 🆕 NEW: To timestamp our reports
 from bson.objectid import ObjectId
 import uuid  # 🆕 NEW: Import the unique ID generator
+# 🆕 NEW: Security imports
+import jwt
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 CORS(app) 
@@ -22,9 +26,66 @@ client = MongoClient(MONGO_URI)
 db = client['pothole_database']
 reports_collection = db['reports']
 
+# 🆕 NEW: Security Configuration
+app.config['SECRET_KEY'] = 'pothole_super_secret_key_2026' # Used to sign the JWT
+
+admins_collection = db['admins']
+
+# Automatically create a default admin if one doesn't exist
+if not admins_collection.find_one({'email': 'admin@pothole.com'}):
+    print("Creating default admin account...")
+    admins_collection.insert_one({
+        'email': 'admin@pothole.com',
+        'password': generate_password_hash('Admin123!') # Hashes the password securely!
+    })
+
 print("Loading YOLOv8 model... Please wait.")
 model = YOLO('C://Users//Admin//Documents//projects//pothole//best.pt') 
 print("✅ Model loaded successfully!")
+
+# 🆕 NEW: The Security Lock (Decorator)
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        # Check if the token is in the headers
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].split(" ")[1] # Format: "Bearer <token>"
+        
+        if not token:
+            return jsonify({'message': 'Token is missing! Access denied.'}), 401
+            
+        try:
+            # Decode the token to see who it belongs to
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_admin = admins_collection.find_one({'email': data['email']})
+        except:
+            return jsonify({'message': 'Token is invalid or expired!'}), 401
+            
+        return f(current_admin, *args, **kwargs)
+    return decorated
+
+# 🆕 NEW: The Login Route
+@app.route('/api/login', methods=['POST'])
+def login():
+    auth = request.json
+    
+    if not auth or not auth.get('email') or not auth.get('password'):
+        return jsonify({'message': 'Could not verify credentials'}), 401
+
+    admin = admins_collection.find_one({'email': auth.get('email')})
+    
+    # Check if user exists and password matches the hash
+    if admin and check_password_hash(admin['password'], auth.get('password')):
+        # Generate a token that lasts for 24 hours
+        token = jwt.encode({
+            'email': admin['email'], 
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, app.config['SECRET_KEY'], algorithm="HS256")
+        
+        return jsonify({'token': token}), 200
+
+    return jsonify({'message': 'Invalid email or password'}), 401
 
 @app.route('/api/detect', methods=['POST'])
 def detect_pothole():
@@ -206,6 +267,7 @@ def get_reports():
     
 # 🆕 NEW: Updated report status route with simulated notifications
 @app.route('/api/reports/<report_id>/status', methods=['PUT'])
+@token_required
 def update_status(report_id):
     data = request.json
     new_status = data.get('status')

@@ -4,11 +4,14 @@ import PotholeMap from './PotholeMap';
 import LiveCamera from './LiveCamera';
 import AdminDashboard from './AdminDashboard';
 import './App.css';
+import AdminLogin from './AdminLogin';
 
 function App() {
   // Navigation State
   const [currentPage, setCurrentPage] = useState('home'); // 'home', 'upload', 'live', 'map', 'admin'
   
+  const [adminToken, setAdminToken] = useState(localStorage.getItem('adminToken') || null);
+
   // Global Stats for Navbar
   const [globalStats, setGlobalStats] = useState({ total: 0, pending: 0, fixed: 0 });
   const [mapRefreshKey, setMapRefreshKey] = useState(0);
@@ -225,9 +228,34 @@ function App() {
         {/* PAGE 5: ADMIN DASHBOARD */}
         {currentPage === 'admin' && (
           <div className="page-container" style={{ width: '100%' }}>
-            <button onClick={() => setCurrentPage('home')} style={{ marginBottom: '20px', background: 'none', color: '#FFD700', border: '1px solid #FFD700', padding: '5px 15px', borderRadius: '4px', cursor: 'pointer' }}>← Back to Home</button>
-            <AdminDashboard />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', width: '100%', maxWidth: '1100px' }}>
+                <button onClick={() => setCurrentPage('home')} style={{ background: 'none', color: '#FFD700', border: '1px solid #FFD700', padding: '5px 15px', borderRadius: '4px', cursor: 'pointer' }}>← Back to Home</button>
+                
+                {/* 🆕 NEW: Logout Button */}
+                {adminToken && (
+                  <button 
+                    onClick={() => { setAdminToken(null); localStorage.removeItem('adminToken'); }} 
+                    style={{ background: '#ff4d4d', color: '#fff', border: 'none', padding: '5px 15px', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Logout
+                  </button>
+                )}
+            </div>
+
+            {/* 🆕 NEW: Show Login if no token, otherwise show Dashboard */}
+            {!adminToken ? (
+              <AdminLogin onLoginSuccess={(token) => {
+                setAdminToken(token);
+                localStorage.setItem('adminToken', token);
+              }} />
+            ) : (
+              <AdminDashboard token={adminToken} /> 
+            )}
           </div>
+          // <div className="page-container" style={{ width: '100%' }}>
+          //   {/* <button onClick={() => setCurrentPage('home')} style={{ marginBottom: '20px', background: 'none', color: '#FFD700', border: '1px solid #FFD700', padding: '5px 15px', borderRadius: '4px', cursor: 'pointer' }}>← Back to Home</button>
+          //   <AdminDashboard /> */}
+          // </div>
         )}
 
       </main>

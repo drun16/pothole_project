@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable'; // 🆕 NEW: Import autoTable as a specific function
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ token }) => {
   const [reports, setReports] = useState([]);
 
   const fetchReports = async () => {
@@ -27,7 +27,9 @@ const AdminDashboard = () => {
       await fetch(`https://f62kjbdd-5000.inc1.devtunnels.ms/api/reports/${reportId}/status`, {
       // await fetch(`http://127.0.0.1:5000/api/reports/${reportId}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // 🆕 NEW: Attach the security token!
+         },
         body: JSON.stringify({ status: newStatus }),
       });
       fetchReports();
