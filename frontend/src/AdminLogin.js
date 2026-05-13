@@ -13,7 +13,8 @@ const AdminLogin = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/login', { // Replace with your DevTunnel/IP if testing on mobile
+        // const response = await fetch('http://127.0.0.1:5000/api/login',
+      const response = await fetch('https://f62kjbdd-5000.inc1.devtunnels.ms/api/login', { // Replace with your DevTunnel/IP if testing on mobile
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

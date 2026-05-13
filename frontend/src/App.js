@@ -200,10 +200,60 @@ function App() {
               </button>
             </div>
 
+            {/* 🆕 NEW: Upgraded Results UI */}
             {results && (
-              <div className="results-section" style={{ marginTop: '20px' }}>
-                <h2>Detection Results</h2>
-                <h3>Potholes Detected: <span className="highlight">{results.pothole_count}</span></h3>
+              <div className="results-section" style={{ marginTop: '30px', padding: '20px', backgroundColor: '#1e1e1e', borderRadius: '12px', border: '1px solid #333', boxShadow: '0 8px 16px rgba(0,0,0,0.5)', width: '100%', maxWidth: '600px' }}>
+                <h2 style={{ color: '#FFD700', marginTop: 0, borderBottom: '1px solid #444', paddingBottom: '10px' }}>Detection Results</h2>
+                
+                <h3 style={{ margin: '15px 0' }}>
+                  Status: {results.pothole_count > 0 
+                    ? <span style={{ color: '#ff4d4d' }}>{results.pothole_count} Hazard(s) Detected</span> 
+                    : <span style={{ color: '#4CAF50' }}>Road Clear</span>}
+                </h3>
+                
+                {/* 🆕 NEW: Render the temporary AI Annotated Image! */}
+                {results.output_image && (
+                  <div style={{ margin: '20px 0', textAlign: 'center' }}>
+                    <p style={{ color: '#aaaaaa', margin: '0 0 5px 0', fontSize: '0.9rem' }}>AI Vision Output</p>
+                    <img 
+                      src={`data:image/jpeg;base64,${results.output_image}`} 
+                      alt="AI Bounding Boxes" 
+                      style={{ width: '100%', borderRadius: '8px', border: '2px dashed #FFD700' }}
+                    />
+                  </div>
+                )}
+
+                {/* Map through each individual pothole and display its stats! */}
+                {results.pothole_count > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+                    {results.detections.map((pothole, index) => {
+                      
+                      // 🧮 MATH LOGIC: Convert raw AI data into readable real-world units
+                      const depthCm = (pothole.estimated_depth * 0.5).toFixed(1); 
+                      const areaSqCm = ((pothole.area_pixels / 1000) * (depthCm / 10)).toFixed(1);
+                      const confidencePercent = (pothole.confidence * 100).toFixed(0);
+
+                      // Determine color based on severity
+                      const severityColor = pothole.severity === 'Severe' ? '#ff4d4d' : pothole.severity === 'Medium' ? '#FFD700' : '#4CAF50';
+
+                      return (
+                        <div key={index} style={{ backgroundColor: '#2a2a2a', padding: '15px', borderRadius: '8px', borderLeft: `5px solid ${severityColor}`, textAlign: 'left' }}>
+                          <h4 style={{ margin: '0 0 10px 0', color: '#fff', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Pothole #{index + 1}</span>
+                            <span style={{ color: severityColor }}>{pothole.severity}</span>
+                          </h4>
+                          
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.95rem', color: '#dddddd' }}>
+                            <div><strong>🎯 AI Confidence:</strong> {confidencePercent}%</div>
+                            <div><strong>📏 Est. Depth:</strong> {depthCm} cm</div>
+                            <div><strong>📐 Approx. Area:</strong> {areaSqCm} cm²</div>
+                            {/* <div><strong>🛑 Action:</strong> {pothole.severity === 'Severe' ? 'Immediate' : 'Monitor'}</div> */}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>

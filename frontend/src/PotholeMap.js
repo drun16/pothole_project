@@ -172,6 +172,8 @@ const PotholeMap = ({ userLocation, refreshTrigger }) => {
                   <Popup>
                     <strong>Status:</strong> {report.status} <br/>
                     <strong>Potholes Found:</strong> {report.pothole_count} <br/>
+                    {/* 🆕 NEW: Display depth on map popup */}
+                    <strong>Estimated Depth:</strong> <span style={{color: 'red'}}>{report.max_depth ? report.max_depth : 'N/A'}</span> <br/>
                     <strong>Reported on:</strong> {new Date(report.reported_at).toLocaleDateString()}
                   </Popup>
                 </Marker>

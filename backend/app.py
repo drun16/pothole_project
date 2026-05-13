@@ -1,6 +1,9 @@
 from flask import Flask, request, jsonify, send_from_directory # 🆕 NEW: Added send_from_directory
 from flask_cors import CORS
 from ultralytics import YOLO
+import torch
+import cv2 
+from depth_anything_v2.dpt import DepthAnythingV2
 import os
 from werkzeug.utils import secure_filename
 from pymongo import MongoClient # 🆕 NEW: Import MongoDB client
@@ -11,6 +14,8 @@ import uuid  # 🆕 NEW: Import the unique ID generator
 import jwt
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+import numpy as np
+import base64 # 👈 🆕 NEW: Import base64 for temporary images
 
 app = Flask(__name__)
 CORS(app) 
@@ -42,6 +47,13 @@ if not admins_collection.find_one({'email': 'admin@pothole.com'}):
 print("Loading YOLOv8 model... Please wait.")
 model = YOLO('C://Users//Admin//Documents//projects//pothole//best.pt') 
 print("✅ Model loaded successfully!")
+# 🆕 NEW: Load Depth Anything V2 Model
+print("Loading Depth Anything V2 model... Please wait.")
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+depth_model = DepthAnythingV2(encoder='vits', features=64, out_channels=[48, 96, 192, 384])
+depth_model.load_state_dict(torch.load('C://Users//Admin//Documents//projects//pothole_depth//checkpoints//depth_anything_v2_vits.pth', map_location='cpu'))
+depth_model = depth_model.to(DEVICE).eval()
+print("✅ Depth Model loaded successfully!")
 
 # 🆕 NEW: The Security Lock (Decorator)
 def token_required(f):
@@ -120,8 +132,20 @@ def detect_pothole():
         source = request.form.get('source', 'upload')
 
         results = model(filepath)
-        detections = []
+
+        # 🆕 NEW: Generate a temporary annotated image with bounding boxes!
+        output_base64 = None
         
+        detections = []
+        max_pothole_depth = 0.0
+        has_potholes = len(results[0].boxes) > 0
+        
+        # 🆕 NEW: Only run the heavy depth model if YOLO actually found something!
+        if has_potholes:
+            raw_image = cv2.imread(filepath)
+            # Generate the depth map for the whole image
+            depth_map = depth_model.infer_image(raw_image)
+
         for r in results:
             boxes = r.boxes
             for box in boxes:
@@ -143,12 +167,24 @@ def detect_pothole():
                     severity = 'Medium'
                 else:
                     severity = 'Minor'
+                
+                # 🆕 NEW: Calculate depth for this specific bounding box
+                box_depth = 0.0
+                if has_potholes:
+                    x1, y1, x2, y2 = map(int, b)
+                    # Extract just the pothole area from the depth map
+                    depth_crop = depth_map[y1:y2, x1:x2]
+                    if depth_crop.size > 0:
+                        box_depth = float(np.mean(depth_crop)) # Average depth of the pothole
+                        if box_depth > max_pothole_depth:
+                            max_pothole_depth = box_depth
 
                 detections.append({
                     'box': b,
                     'confidence': conf,
                     'severity': severity,
-                    'area_pixels': round(area, 2)
+                    'area_pixels': round(area, 2),
+                    'estimated_depth': round(box_depth, 2)
                 })
         # results = model(filepath)
         
@@ -189,14 +225,28 @@ def detect_pothole():
         safe_lat = float(lat) if lat and lat != 'undefined' else None
         safe_lng = float(lng) if lng and lng != 'undefined' else None
 
+        # 🆕 NEW: Generate a temporary annotated image with bounding boxes!
+        output_base64 = None
+
+        if source == 'upload': # We only do this for manual uploads to keep the live camera fast
+            # .plot() is YOLO's magic function that draws the boxes and labels
+            annotated_img = results[0].plot() 
+            # Convert the image to a temporary memory buffer
+            _, buffer = cv2.imencode('.jpg', annotated_img)
+            # Encode it to a text string to send to React safely
+            output_base64 = base64.b64encode(buffer).decode('utf-8')
+
         # 🆕 NEW: Smart Database Saving Logic!
         # Always save manual uploads. But for LIVE camera, ONLY save if a pothole is found!
+        # Rule 1: Always save if it's a manual upload.
+        # Rule 2: If it's a live camera feed, ONLY save if at least 1 pothole was found!
         if source == 'upload' or (source == 'live' and len(detections) > 0):
         # 🆕 NEW: Save this report to MongoDB, now including the real GPS data!
             report_data = {
                 'image_filename': original_filename,
                 'pothole_count': len(detections),
                 'detections': detections,
+                'max_depth': round(max_pothole_depth, 2) if has_potholes else 0.0,
                 'status': 'Pending',
                 'reported_at': datetime.datetime.utcnow(),
                 # Convert to float for mapping math, or save as None if user denied location
@@ -210,7 +260,10 @@ def detect_pothole():
             db_saved = True
         else:
             # If it's a live frame with no potholes, we delete the temporary image to save space!
-            os.remove(filepath)
+            # 🗑️ THE CLEANUP LOGIC: It's a live frame with NO potholes.
+            # Delete the useless image from the uploads folder to save hard drive space!
+            if os.path.exists(filepath):
+                os.remove(filepath)
             db_saved = False
         # ... (return statement stays the same) ...
         # # Insert into database and get the generated ID
@@ -220,7 +273,8 @@ def detect_pothole():
             'message': 'Detection complete',
             'saved_to_db': db_saved, # Let the frontend know if we saved it
             'pothole_count': len(detections),
-            'detections': detections
+            'detections': detections,
+            'output_image': output_base64 # 👈 🆕 NEW: Send the temporary im
         }), 200
 
         # return jsonify({

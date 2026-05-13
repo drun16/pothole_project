@@ -57,7 +57,7 @@ const AdminDashboard = ({ token }) => {
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22);
 
     // Prepare the table data
-    const tableColumn = ["Date", "Time", "Potholes Found", "Coordinates", "Status"];
+    const tableColumn = ["Date", "Time", "Potholes Found", "Max Depth", "Coordinates", "Status"];
     const tableRows = [];
 
     reports.forEach(report => {
@@ -66,6 +66,7 @@ const AdminDashboard = ({ token }) => {
         // 🆕 NEW: Format the time nicely for the PDF
         new Date(report.reported_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         report.pothole_count,
+        report.max_depth ? `${report.max_depth}` : 'N/A',
         report.latitude ? `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}` : 'Unknown',
         report.status
       ];
@@ -151,6 +152,7 @@ const AdminDashboard = ({ token }) => {
               <th style={{ padding: '12px' }}>Date</th>
               <th style={{ padding: '12px' }}>Time</th>
               <th style={{ padding: '12px' }}>Potholes</th>
+              <th style={{ padding: '12px' }}>Max Depth</th>
               <th style={{ padding: '12px' }}>Location (Lat, Lng)</th>
               <th style={{ padding: '12px' }}>Status</th>
               <th style={{ padding: '12px' }}>Action</th>
@@ -182,6 +184,12 @@ const AdminDashboard = ({ token }) => {
                 </td>
                 
                 <td style={{ padding: '12px' }}>{report.pothole_count}</td>
+
+                {/* 🆕 NEW: Table Data */}
+                <td style={{ padding: '12px', color: '#FFD700', fontWeight: 'bold' }}>
+                  {report.max_depth ? report.max_depth : '--'}
+                </td>
+
                 <td style={{ padding: '12px', fontSize: '0.9rem' }}>
                   {report.latitude ? `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}` : 'Unknown'}
                 </td>
